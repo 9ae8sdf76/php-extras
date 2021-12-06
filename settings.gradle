@@ -1,0 +1,13 @@
+pluginManagement {
+    repositories {
+        maven{
+            url 'https://mvnrepository.com/artifact/org.jetbrains'
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'php-extras'

@@ -1,0 +1,35 @@
+<idea-plugin>
+    <id>dev.dohpaz.php-extras</id>
+    <name>PHP Extras</name>
+    <version>1.1.0</version>
+    <vendor email="support@dohpaz.dev">Ken Stanley</vendor>
+
+    <description><![CDATA[
+    Replaced by description.html .....................
+    ]]></description>
+
+    <change-notes><![CDATA[
+    Replaced by change-notes.html ....................
+    ]]></change-notes>
+
+    <depends>com.jetbrains.php</depends>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.php-capable</depends>
+
+    <idea-version since-build="162.1889" />
+
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity order="first" implementation="dev.dohpaz.phpExtras.composer.packages.RootPostStartupActivity" />
+        <postStartupActivity order="last" implementation="dev.dohpaz.phpExtras.php.config.library.SortIncludePathPortStartupActivity" />
+
+        <localInspection language="JSON" groupPath="PHP" shortName="ComposerPackageToModuleInspection"
+                         displayName="Suggest local packages that can be attached as modules"
+                         groupName="Composer"
+                         enabledByDefault="true" level="WARNING"
+                         applyToDialects="true"
+                         runForWholeFile="true"
+                         implementationClass="dev.dohpaz.phpExtras.php.codeInspection.ComposerPackageToModuleInspection" />
+
+        <notificationGroup displayType="TOOL_WINDOW" id="PHP Extras"/>
+    </extensions>
+</idea-plugin>

@@ -1,0 +1,7 @@
+.DS_Store
+/.gradle
+/.idea
+/.vagrant
+/php-extras.iml
+/build
+/out
