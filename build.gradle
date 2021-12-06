@@ -6,7 +6,7 @@ plugins {
     id 'org.jetbrains.intellij' version '0.4.26'
 }
 
-def htmlFixer = { htmlFile -> file(htmlFile).text.replace('<html>', '').replace('</html>', '') }
+def htmlFixer = { htmlFile -> file(htmlFile).text.replace('<html>', '').replace('</html>', '') } as Object
 
 group 'dev.dohpaz.phpStorm.phpExtras'
 version '1.2.0'
