@@ -42,4 +42,8 @@ patchPluginXml {
     pluginDescription   = htmlFixer('src/main/resources/META-INF/description.html')
 }
 
+wrapper {
+    gradleVersion = gradleVersion
+}
+
 test.testLogging.exceptionFormat = TestExceptionFormat.FULL
