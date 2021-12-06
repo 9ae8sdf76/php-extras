@@ -20,19 +20,18 @@ repositories {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version ideaVersion
+    version = ideaVersion
+    pluginName = 'PHP Extras'
 
     plugins = [
             "com.jetbrains.php:${phpPluginVersion}",
             "properties",
             "java"
     ]
-
-    pluginName 'PHP Extras'
 }
 
 runIde {
-    ideDirectory = System.getProperty("user.home") + "/Library/Application Support/JetBrains/Toolbox/apps/PhpStorm/ch-0/203.5981.175/PhpStorm.app/Contents"
+    ideDir = file(System.getProperty("user.home") + "/Library/Application Support/JetBrains/Toolbox/apps/PhpStorm/ch-1/" + ideVersion + "/PhpStorm.app/Contents")
 }
 
 patchPluginXml {
