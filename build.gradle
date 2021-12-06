@@ -12,7 +12,7 @@ group 'dev.dohpaz.phpStorm.phpExtras'
 version '1.2.0'
 
 sourceCompatibility = javaVersion
-targetCompatibility = javaVersion
+targetCompatibility = javaTargetVersion
 
 repositories {
     mavenCentral()
