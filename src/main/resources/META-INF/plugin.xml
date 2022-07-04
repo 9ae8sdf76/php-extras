@@ -16,7 +16,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.php-capable</depends>
 
-    <idea-version since-build="203.5981.175" />
+    <idea-version since-build="212.5712.51" />
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity order="first" implementation="dev.dohpaz.phpExtras.composer.packages.RootPostStartupActivity" />
