@@ -24,7 +24,7 @@ public class NotificationUtil {
             return;
         }
 
-        Notification notification = group.createNotification("Module include path removed", module + ": " + message, notificationType, null);
+        Notification notification = group.createNotification("Module include path removed", module + ": " + message, notificationType);
         ApplicationManager.getApplication().invokeLater(() -> {
             Notifications.Bus.notify(notification, project);
         });
