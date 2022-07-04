@@ -7,7 +7,7 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.jetbrains.php.config.library.PhpIncludePathManager;
 import org.jetbrains.annotations.NotNull;
 
-public class SortIncludePathPortStartupActivity implements StartupActivity, DumbAware {
+public class SortIncludePathPostStartupActivity implements StartupActivity, DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
         final PhpIncludePathManager includePathManager = PhpIncludePathManager.getInstance(project);

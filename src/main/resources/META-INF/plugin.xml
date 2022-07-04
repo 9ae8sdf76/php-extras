@@ -20,7 +20,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity order="first" implementation="dev.dohpaz.phpExtras.composer.packages.RootPostStartupActivity" />
-        <postStartupActivity order="last" implementation="dev.dohpaz.phpExtras.php.config.library.SortIncludePathPortStartupActivity" />
+        <postStartupActivity order="last" implementation="dev.dohpaz.phpExtras.php.config.library.SortIncludePathPostStartupActivity" />
 
         <localInspection language="JSON" groupPath="PHP" shortName="ComposerPackageToModuleInspection"
                          displayName="Suggest local packages that can be attached as modules"
