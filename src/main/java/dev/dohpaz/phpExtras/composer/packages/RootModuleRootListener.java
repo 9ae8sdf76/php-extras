@@ -1,9 +1,9 @@
 package dev.dohpaz.phpExtras.composer.packages;
 
 import com.google.gson.JsonObject;
+import com.google.gson.stream.MalformedJsonException;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -11,12 +11,16 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import com.jetbrains.php.composer.ComposerConfigUtils;
 import com.jetbrains.php.config.library.PhpIncludePathManager;
 import dev.dohpaz.phpExtras.NotificationUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -25,10 +29,17 @@ public class RootModuleRootListener implements ModuleRootListener {
     final private PhpIncludePathManager includePathManager;
     final private LocalFileSystem localFileSystem;
 
+    private VirtualFile[] contentRoots;
+
     public RootModuleRootListener(PhpIncludePathManager includePathManager, LocalFileSystem localFileSystem, VirtualFile composerJson) {
         this.composerJson = composerJson;
         this.includePathManager = includePathManager;
         this.localFileSystem = localFileSystem;
+    }
+
+    @Override
+    public void beforeRootsChange(@NotNull ModuleRootEvent event) {
+        contentRoots = getContentRoots(event.getProject());
     }
 
     public void rootsChanged(@NotNull ModuleRootEvent event) {
@@ -41,31 +52,84 @@ public class RootModuleRootListener implements ModuleRootListener {
             return;
         }
 
+        final Project project = event.getProject();
+
+        final VirtualFile[] contentRoots = getContentRoots(project);
+
+        // If the global contentRoots has more roots than the local contentRoots, then we are removing a content root.
+        if (contentRoots.length > this.contentRoots.length) {
+            removeIncludePath(project);
+        } else {
+            addIncludePath(project);
+        }
+    }
+
+    /**
+     * Add back to the project include paths the path that was removed as a content root.
+     *
+     * @param project The IntelliJ project
+     */
+    private void addIncludePath(Project project) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            final Project project = (Project) event.getSource();
-            final String basePath = project.getBasePath();
+            List<String> includePaths = getIncludePaths();
+            String vendorDirectory = getVendorDirectory(project);
+
+            String module = "unknown";
+
+            Collection<VirtualFile> contentRoots = ContainerUtil.subtract(Arrays.asList(this.contentRoots), Arrays.asList(getContentRoots(project)));
+
+            for (VirtualFile contentRoot : contentRoots) {
+                VirtualFile compositeFile;
+
+                try {
+                    module = getPackageName(contentRoot);
+                    compositeFile = localFileSystem.findFileByPath(vendorDirectory + "/" + module);
+                } catch (IOException e) {
+                    NotificationUtil.warn(project, module != null ? module : "unknown", "Exception: " + e);
+                    continue;
+                }
+
+                if (compositeFile == null || !localFileSystem.exists(compositeFile)) {
+                    continue;
+                }
+
+                NotificationUtil.info(project, module != null ? module : "unknown", compositeFile.getPath());
+                includePaths.add(compositeFile.getPath());
+            }
+
+            includePathManager.setIncludePath(includePaths);
+
+            project.getMessageBus().syncPublisher(ProjectTopics.PROJECT_ROOTS);
+            this.contentRoots = null;
+        });
+    }
+
+    /**
+     * Remove the path from the global include paths that was added as a content root.
+     *
+     * @param project The IntelliJ project
+     */
+    private void removeIncludePath(Project project) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            List<String> includePaths = getIncludePaths();
+            final VirtualFile[] contentRoots = getContentRoots(project);
+
             String module = "unknown";
 
             try {
                 List<String> toRemove = new LinkedList<>();
-
-                Pair<String, String> composerDirectories = ComposerConfigUtils.getVendorAndBinDirs(composerJson);
-                String vendorDirectory = basePath + "/" + (composerDirectories != null ? composerDirectories.getFirst() : "vendor");
-
-                VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
-                List<String> includePaths = includePathManager.getIncludePath();
+                String vendorDirectory = getVendorDirectory(project);
 
                 for (VirtualFile contentRoot : contentRoots) {
-                    String contentRootPath = contentRoot.getCanonicalPath();
-                    VirtualFile contentComposerJson = localFileSystem.findFileByPath(contentRootPath + "/composer.json");
+                    VirtualFile compositeFile;
 
-                    if (contentComposerJson == null) {
+                    try {
+                        module = getPackageName(contentRoot);
+                        compositeFile = localFileSystem.findFileByPath(vendorDirectory + "/" + module);
+                    } catch (MalformedJsonException e) {
+                        NotificationUtil.warn(project, module != null ? module : "unknown", "Exception: " + e);
                         continue;
                     }
-
-                    JsonObject jsonObject = ComposerConfigUtils.parseJson(contentComposerJson).getAsJsonObject();
-                    module = jsonObject.get("name").getAsString();
-                    VirtualFile compositeFile = localFileSystem.findFileByPath(vendorDirectory + "/" + module);
 
                     if (compositeFile == null || !localFileSystem.exists(compositeFile)) {
                         continue;
@@ -74,7 +138,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     String canonicalCompositePath = compositeFile.getPath();
                     for (String includePath : includePaths) {
                         if (includePath.equals(canonicalCompositePath)) {
-                            NotificationUtil.info(project, module, includePath);
+                            NotificationUtil.info(project, module != null ? module : "unknown", includePath);
                             toRemove.add(includePath);
                         }
                     }
@@ -83,11 +147,40 @@ public class RootModuleRootListener implements ModuleRootListener {
                 includePaths.removeAll(toRemove);
                 includePathManager.setIncludePath(includePaths);
             } catch (IOException e) {
-                NotificationUtil.error(project, module, e.toString());
+                NotificationUtil.error(project, module != null ? module : "unknown", e.toString());
                 e.printStackTrace();
             }
 
             project.getMessageBus().syncPublisher(ProjectTopics.PROJECT_ROOTS);
-        }, ModalityState.defaultModalityState());
+            this.contentRoots = null;
+        });
+    }
+
+    @NotNull
+    private VirtualFile[] getContentRoots(Project project) {
+        return ProjectRootManager.getInstance(project).getContentRoots();
+    }
+
+    private List<String> getIncludePaths() {
+        return includePathManager.getIncludePath();
+    }
+
+    private @Nullable String getPackageName(VirtualFile root) throws IOException {
+        String contentRootPath = root.getCanonicalPath();
+        VirtualFile contentComposerJson = localFileSystem.findFileByPath(contentRootPath + "/composer.json");
+
+        if (contentComposerJson == null) {
+            return null;
+        }
+
+        JsonObject jsonObject = ComposerConfigUtils.parseJson(contentComposerJson).getAsJsonObject();
+        return jsonObject.get("name").getAsString();
+    }
+
+    private String getVendorDirectory(Project project) {
+        final String basePath = project.getBasePath();
+
+        Pair<String, String> composerDirectories = ComposerConfigUtils.getVendorAndBinDirs(composerJson);
+        return basePath + "/" + (composerDirectories != null ? composerDirectories.getFirst() : "vendor");
     }
 }
