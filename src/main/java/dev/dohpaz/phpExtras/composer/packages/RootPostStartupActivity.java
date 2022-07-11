@@ -20,6 +20,9 @@ public class RootPostStartupActivity implements StartupActivity, DumbAware {
         final PhpIncludePathManager includePathManager = PhpIncludePathManager.getInstance(project);
 
         final RootModuleRootListener rootModuleRootListener = new RootModuleRootListener(includePathManager, this.localFileSystem, composerJson);
-        project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, rootModuleRootListener);
+        project
+                .getMessageBus()
+                .connect()
+                .subscribe(ProjectTopics.PROJECT_ROOTS, rootModuleRootListener);
     }
 }
