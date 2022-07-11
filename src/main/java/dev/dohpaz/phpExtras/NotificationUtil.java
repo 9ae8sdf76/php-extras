@@ -29,4 +29,8 @@ public class NotificationUtil {
             Notifications.Bus.notify(notification, project);
         });
     }
+
+    static public void warn(@NotNull Project project, @NotNull String module, @NotNull String message) {
+        NotificationUtil.send(project, module, message, NotificationType.WARNING);
+    }
 }
