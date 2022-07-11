@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ComposerPackageToModuleInspection extends PhpInspection {
+public class PhpComposerAutoloadDevPackageToContentRootInspection extends PhpInspection {
     final LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
 
     @NotNull
