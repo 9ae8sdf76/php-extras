@@ -6,6 +6,7 @@ import com.jetbrains.php.config.library.PhpIncludePathManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 public class SortIncludePathListener implements ModuleRootListener {
     private PhpIncludePathManager includePathManager;
@@ -17,7 +18,7 @@ public class SortIncludePathListener implements ModuleRootListener {
     public void rootsChanged(@NotNull ModuleRootEvent event) {
         List<String> includePaths = this.includePathManager.getIncludePath();
         includePaths.sort((o1, o2) -> {
-            if( o1 == o2 )
+            if (Objects.equals(o1, o2))
                 return 0;
             if (o1 == null)
                 return 1;
