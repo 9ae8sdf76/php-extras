@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class SortIncludePathListener implements ModuleRootListener {
-    private PhpIncludePathManager includePathManager;
+    private final PhpIncludePathManager includePathManager;
 
     public SortIncludePathListener(PhpIncludePathManager includePathManager) {
         this.includePathManager = includePathManager;
