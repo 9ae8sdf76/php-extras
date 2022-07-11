@@ -28,6 +28,7 @@
                          enabledByDefault="true" level="WARNING"
                          applyToDialects="true"
                          runForWholeFile="true"
+                         key="inspection.json.packageToContentRoot.0" bundle="messages.PhpExtras"
                          implementationClass="dev.dohpaz.phpExtras.php.codeInspection.PhpComposerAutoloadDevPackageToContentRootInspection" />
 
         <notificationGroup displayType="TOOL_WINDOW" id="PHP Extras"/>
