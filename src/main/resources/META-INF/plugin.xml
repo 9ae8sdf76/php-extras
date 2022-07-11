@@ -26,8 +26,7 @@
                          displayName="Add autoload-dev packages as content roots"
                          groupName="Composer"
                          enabledByDefault="true" level="WARNING"
-                         applyToDialects="true"
-                         runForWholeFile="true"
+                         applyToDialects="true" runForWholeFile="true"
                          key="inspection.json.packageToContentRoot.0" bundle="messages.PhpExtras"
                          implementationClass="dev.dohpaz.phpExtras.php.codeInspection.PhpComposerAutoloadDevPackageToContentRootInspection" />
 
