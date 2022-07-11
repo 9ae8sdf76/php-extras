@@ -1,96 +1,155 @@
 package dev.dohpaz.phpExtras.php.codeInspection;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemsHolder;
-import com.intellij.json.psi.JsonElementVisitor;
+import com.intellij.codeInspection.util.IntentionFamilyName;
+import com.intellij.json.JsonUtil;
+import com.intellij.json.psi.*;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
-import com.jetbrains.php.composer.ComposerConfigUtils;
-import com.jetbrains.php.composer.ComposerDataService;
-import com.jetbrains.php.composer.InstalledPackageData;
+import com.intellij.util.ObjectUtils;
+import com.intellij.util.containers.ContainerUtil;
+import com.jetbrains.php.composer.json.PhpComposerJsonUtils;
 import com.jetbrains.php.lang.inspections.PhpInspection;
+import com.jetbrains.php.lang.inspections.quickfix.PhpQuickFixBase;
+import dev.dohpaz.phpExtras.NotificationUtil;
+import dev.dohpaz.phpExtras.php.PhpExtrasBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 public class PhpComposerAutoloadDevPackageToContentRootInspection extends PhpInspection {
-    final LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
+    /**
+     * Search the autoload-dev in the main project's composer.json and suggest
+     * adding any packages that are not already content roots.
+     *
+     * <ol>
+     * <li>Check if the file is a valid composer.json file</li>
+     * <li>Parse the autoload-dev section for a list of local packages</li>
+     * <li>Filter the list against existing project modules</li>
+     * <li>Report inspection for each package not added as a module</li>
+     * </ol>
+     *
+     * @param holder     where visitor will register problems found.
+     * @param isOnTheFly true if inspection was run in non-batch mode
+     * @return PsiElementVisitor
+     */
+    public @NotNull PsiElementVisitor buildVisitor(final @NotNull ProblemsHolder holder, boolean isOnTheFly) {
+        PsiFile file = holder.getFile();
 
-    @NotNull
-    @Override
-    public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
-        Project project = holder.getProject();
-        VirtualFile basePath = localFileSystem.findFileByPath(Objects.requireNonNull(project.getBasePath()));
-        ComposerDataService dataService = ComposerDataService.getInstance(holder.getProject());
-
-        if (dataService != null && dataService.isConfigWellConfigured()) {
-
-            VirtualFile config = localFileSystem.refreshAndFindFileByPath(dataService.getConfigPath());
-
-            if (config == null) {
-                return PsiElementVisitor.EMPTY_VISITOR;
-            }
-
-            // Collect the local packages
-            Map<String, String> localRoots = new HashMap<>();
-            VirtualFile parentDir = Objects.requireNonNull(basePath).getParent();
-
-            for (String path : localFileSystem.list(parentDir)) {
-                VirtualFile moduleDir = localFileSystem.refreshAndFindFileByPath(parentDir.getCanonicalPath() + "/" + path);
-                if (moduleDir == null) {
-                    continue;
-                }
-
-                if (localFileSystem.isDirectory(moduleDir) && !moduleDir.equals(basePath)) {
-                    VirtualFile composerFile = localFileSystem.refreshAndFindFileByPath(moduleDir.getCanonicalPath() + "/composer.json");
-
-                    if (composerFile == null || !ComposerDataService.isWellConfigured(composerFile.getCanonicalPath())) {
-                        continue;
-                    }
-
-                    JsonObject jsonObject;
-                    try {
-                        jsonObject = ComposerConfigUtils.parseJson(composerFile).getAsJsonObject();
-                    } catch (IOException e) {
-                        continue;
-                    }
-
-                    JsonElement moduleName = jsonObject.get("name");//  .findProperty("name");
-
-                    if (moduleName == null) {
-                        continue;
-                    }
-
-                    System.out.println(moduleName.getAsString());
-                    localRoots.put(moduleName.getAsString(), moduleDir.getCanonicalPath());
-                }
-            }
-
-            return new JsonElementVisitor() {
-                final private String basePath = project.getBasePath();
-                final private Map<String, String> modules = new HashMap<>();
-
-                @Override
-                public void visitFile(PsiFile file) {
-                    for (InstalledPackageData installedPackageData : ComposerConfigUtils.getInstalledPackagesFromConfig(file.getVirtualFile())) {
-                        String packageName = installedPackageData.getName();
-                        VirtualFile path = localFileSystem.findFileByPath(basePath + "/vendor/" + packageName);
-
-                        if (path != null && path.exists()) {
-                            // Compare this package with the packages found in the directory above
-                        }
-                    }
-                }
-            };
+        if (!PhpComposerJsonUtils.insideComposerJson(file)) {
+            return PsiElementVisitor.EMPTY_VISITOR;
         }
 
-        return PsiElementVisitor.EMPTY_VISITOR;
+        JsonFile composerJson = ObjectUtils.tryCast(file, JsonFile.class);
+        final JsonObject topLevelObject = JsonUtil.getTopLevelObject(composerJson);
+
+        if (topLevelObject == null) {
+            return PsiElementVisitor.EMPTY_VISITOR;
+        }
+
+        Project project = holder.getProject();
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
+
+        // Each Pair<> is the name of the content root (first) and its fully-qualified filesystem path (second).
+        // The main top-level project is filtered out.
+        Collection<Pair<String, String>> roots = ContainerUtil.map(
+                ContainerUtil.filter(
+                        contentRoots,
+                        (i) -> !project.getName().equals(i.getPresentableName())
+                ),
+                (i) -> Pair.create(i.getPresentableName(), i.getCanonicalPath())
+        );
+
+        return new JsonElementVisitor() {
+            @Override
+            public void visitObject(@NotNull JsonObject o) {
+                if (o.equals(topLevelObject)) {
+                    JsonObject autoloadDevSection = JsonUtil.getPropertyValueOfType(o, "autoload-dev", JsonObject.class);
+
+                    if (autoloadDevSection != null) {
+                        List<JsonProperty> autoloadDevProperties = autoloadDevSection.getPropertyList();
+
+                        // The idea is that we need to take each path defined in the autoload-dev and determine (by path)
+                        // which ones do not already exist as a content root. Those are the paths that we will report
+                        // with an inspection.
+                        Collection<JsonProperty> paths = ContainerUtil.filter(autoloadDevProperties, (property) -> !ContainerUtil.map(roots, pair -> {
+                            String root = JsonPsiUtil.stripQuotes(pair.second);
+                            System.out.println(toAbsolutePath(project, root) + " -> " + root);
+                            return toAbsolutePath(project, root);
+                        }).contains(toAbsolutePath(project, JsonPsiUtil.stripQuotes(Objects.requireNonNull(property.getValue()).getText()))));
+
+                        paths.forEach(this::makeReport);
+                    }
+                }
+            }
+
+            public void makeReport(JsonProperty property) {
+                Path path = toAbsolutePath(project, JsonPsiUtil.stripQuotes(Objects.requireNonNull(property.getValue()).getText()));
+                if (path == null) {
+                    return;
+                }
+
+                String name = path.getName(path.getNameCount() - 1).toString();
+                holder.registerProblem(property.getValue(), PhpExtrasBundle.message("inspection.json.packageToContentRoot.0", name), AddPackageAsContentRootQuickFix.INSTANCE);
+            }
+        };
+    }
+
+    @Nullable
+    public static Path toAbsolutePath(Project project, final String path) {
+        if (!FileUtil.isAbsolute(path)) {
+            try {
+                return Path.of(Objects.requireNonNull(project.getBasePath()), path).toRealPath(LinkOption.NOFOLLOW_LINKS);
+            } catch (IOException ignored) {
+                return null;
+            }
+        }
+
+        return Path.of(path);
+    }
+
+    private static class AddPackageAsContentRootQuickFix extends PhpQuickFixBase {
+        static AddPackageAsContentRootQuickFix INSTANCE = new AddPackageAsContentRootQuickFix();
+
+        private AddPackageAsContentRootQuickFix() {
+        }
+
+        @Override
+        public @IntentionFamilyName
+        @NotNull String getFamilyName() {
+            return PhpExtrasBundle.message("inspection.json.packageToContentRoot.fix");
+        }
+
+        @Override
+        public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+            // Discern the package name and path on filesystem and add as a content root
+            PsiElement element = descriptor.getPsiElement();
+            Path path = PhpComposerAutoloadDevPackageToContentRootInspection.toAbsolutePath(project, JsonPsiUtil.stripQuotes(element.getText()));
+
+            if (path == null) {
+                NotificationUtil.warn(project, JsonPsiUtil.stripQuotes(element.getText()), "Invalid package path");
+                return;
+            }
+
+            String name = path.getName(path.getNameCount() - 1).toString();
+
+            ModuleManager manager = ModuleManager.getInstance(project);
+            ModuleRootModificationUtil.addContentRoot(manager.newModule(path, name), path.toString());
+        }
     }
 }
