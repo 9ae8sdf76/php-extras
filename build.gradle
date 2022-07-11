@@ -9,7 +9,7 @@ plugins {
 def htmlFixer = { htmlFile -> file(htmlFile).text.replace('<html>', '').replace('</html>', '') } as Object
 
 group 'dev.dohpaz.phpStorm.phpExtras'
-version '1.2.0'
+version '2.0.0'
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaTargetVersion
