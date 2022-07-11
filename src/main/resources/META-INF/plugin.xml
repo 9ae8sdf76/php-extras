@@ -23,7 +23,7 @@
         <postStartupActivity order="last" implementation="dev.dohpaz.phpExtras.php.config.library.SortIncludePathPostStartupActivity" />
 
         <localInspection language="JSON" groupPath="PHP" shortName="ComposerPackageToModuleInspection"
-                         displayName="Suggest local packages that can be attached as modules"
+                         displayName="Add autoload-dev packages as content roots"
                          groupName="Composer"
                          enabledByDefault="true" level="WARNING"
                          applyToDialects="true"
