@@ -22,13 +22,13 @@
         <postStartupActivity order="first" implementation="dev.dohpaz.phpExtras.composer.packages.RootPostStartupActivity" />
         <postStartupActivity order="last" implementation="dev.dohpaz.phpExtras.php.config.library.SortIncludePathPostStartupActivity" />
 
-        <localInspection language="JSON" groupPath="PHP" shortName="ComposerPackageToModuleInspection"
+        <localInspection language="JSON" groupPath="PHP" shortName="PhpComposerAutoloadDevPackageToContentRootInspection"
                          displayName="Add autoload-dev packages as content roots"
                          groupName="Composer"
                          enabledByDefault="true" level="WARNING"
                          applyToDialects="true"
                          runForWholeFile="true"
-                         implementationClass="dev.dohpaz.phpExtras.php.codeInspection.ComposerPackageToModuleInspection" />
+                         implementationClass="dev.dohpaz.phpExtras.php.codeInspection.PhpComposerAutoloadDevPackageToContentRootInspection" />
 
         <notificationGroup displayType="TOOL_WINDOW" id="PHP Extras"/>
     </extensions>
