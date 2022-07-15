@@ -77,7 +77,15 @@ public class RootModuleRootListener implements ModuleRootListener {
 
             String module = "unknown";
 
-            Collection<VirtualFile> contentRoots = ContainerUtil.subtract(Arrays.asList(this.contentRoots), Arrays.asList(getContentRoots(project)));
+            Collection<VirtualFile> contentRoots;
+
+            // If someone were to go to Preferences > Directories and remove all content roots
+            // from the project, then the global contentRoots will be null.
+            if (this.contentRoots != null) {
+                contentRoots = ContainerUtil.subtract(Arrays.asList(this.contentRoots), Arrays.asList(getContentRoots(project)));
+            } else {
+                contentRoots = Arrays.asList(getContentRoots(project));
+            }
 
             for (VirtualFile contentRoot : contentRoots.stream().distinct().collect(Collectors.toList())) {
                 VirtualFile compositeFile;
