@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RootModuleRootListener implements ModuleRootListener {
     final private VirtualFile composerJson;
@@ -97,7 +98,11 @@ public class RootModuleRootListener implements ModuleRootListener {
                 includePaths.add(compositeFile.getPath());
             }
 
-            includePathManager.setIncludePath(includePaths);
+            includePathManager.setIncludePath(
+                    includePaths
+                            .stream()
+                            .distinct()
+                            .collect(Collectors.toList()));
 
             project.getMessageBus().syncPublisher(ProjectTopics.PROJECT_ROOTS);
             this.contentRoots = null;
@@ -145,7 +150,11 @@ public class RootModuleRootListener implements ModuleRootListener {
                 }
 
                 includePaths.removeAll(toRemove);
-                includePathManager.setIncludePath(includePaths);
+                includePathManager.setIncludePath(
+                        includePaths
+                                .stream()
+                                .distinct()
+                                .collect(Collectors.toList()));
             } catch (IOException e) {
                 NotificationUtil.error(project, module != null ? module : "unknown", e.toString());
                 e.printStackTrace();
