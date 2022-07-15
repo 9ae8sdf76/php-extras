@@ -79,7 +79,7 @@ public class RootModuleRootListener implements ModuleRootListener {
 
             Collection<VirtualFile> contentRoots = ContainerUtil.subtract(Arrays.asList(this.contentRoots), Arrays.asList(getContentRoots(project)));
 
-            for (VirtualFile contentRoot : contentRoots) {
+            for (VirtualFile contentRoot : contentRoots.stream().distinct().collect(Collectors.toList())) {
                 VirtualFile compositeFile;
 
                 try {
