@@ -92,6 +92,11 @@ public class RootModuleRootListener implements ModuleRootListener {
 
                 try {
                     module = getPackageName(contentRoot);
+
+                    if (module == null) {
+                        continue;
+                    }
+
                     compositeFile = localFileSystem.findFileByPath(vendorDirectory + "/" + module);
                 } catch (IOException e) {
                     NotificationUtil.warn(project, module != null ? module : "unknown", "Exception: " + e);
@@ -102,7 +107,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     continue;
                 }
 
-                NotificationUtil.info(project, module != null ? module : "unknown", "[A] " + compositeFile.getPath());
+                NotificationUtil.info(project, module, "[A] " + compositeFile.getPath());
                 includePaths.add(compositeFile.getPath());
             }
 
@@ -138,6 +143,11 @@ public class RootModuleRootListener implements ModuleRootListener {
 
                     try {
                         module = getPackageName(contentRoot);
+
+                        if (module == null) {
+                            continue;
+                        }
+
                         compositeFile = localFileSystem.findFileByPath(vendorDirectory + "/" + module);
                     } catch (MalformedJsonException e) {
                         NotificationUtil.warn(project, module != null ? module : "unknown", "Exception: " + e);
@@ -151,7 +161,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     String canonicalCompositePath = compositeFile.getPath();
                     for (String includePath : includePaths) {
                         if (includePath.equals(canonicalCompositePath)) {
-                            NotificationUtil.info(project, module != null ? module : "unknown", "[R] " + includePath);
+                            NotificationUtil.info(project, module, "[R] " + includePath);
                             toRemove.add(includePath);
                         }
                     }
@@ -191,7 +201,10 @@ public class RootModuleRootListener implements ModuleRootListener {
         }
 
         JsonObject jsonObject = ComposerConfigUtils.parseJson(contentComposerJson).getAsJsonObject();
-        return jsonObject.get("name").getAsString();
+
+        return jsonObject.has("name")
+            ? jsonObject.get("name").getAsString()
+            : null;
     }
 
     private String getVendorDirectory(Project project) {
