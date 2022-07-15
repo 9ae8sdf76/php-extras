@@ -89,7 +89,6 @@ public class PhpComposerAutoloadDevPackageToContentRootInspection extends PhpIns
                         // with an inspection.
                         Collection<JsonProperty> paths = ContainerUtil.filter(autoloadDevProperties, (property) -> !ContainerUtil.map(roots, pair -> {
                             String root = JsonPsiUtil.stripQuotes(pair.second);
-                            System.out.println(toAbsolutePath(project, root) + " -> " + root);
                             return toAbsolutePath(project, root);
                         }).contains(toAbsolutePath(project, JsonPsiUtil.stripQuotes(Objects.requireNonNull(property.getValue()).getText()))));
 
