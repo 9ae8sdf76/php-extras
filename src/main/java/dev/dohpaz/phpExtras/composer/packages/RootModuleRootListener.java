@@ -93,7 +93,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     continue;
                 }
 
-                NotificationUtil.info(project, module != null ? module : "unknown", compositeFile.getPath());
+                NotificationUtil.info(project, module != null ? module : "unknown", "[A] " + compositeFile.getPath());
                 includePaths.add(compositeFile.getPath());
             }
 
@@ -138,7 +138,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     String canonicalCompositePath = compositeFile.getPath();
                     for (String includePath : includePaths) {
                         if (includePath.equals(canonicalCompositePath)) {
-                            NotificationUtil.info(project, module != null ? module : "unknown", includePath);
+                            NotificationUtil.info(project, module != null ? module : "unknown", "[R] " + includePath);
                             toRemove.add(includePath);
                         }
                     }
