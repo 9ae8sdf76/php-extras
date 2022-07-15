@@ -1,10 +1,7 @@
 package dev.dohpaz.phpExtras;
 
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,16 +15,10 @@ public class NotificationUtil {
     }
 
     static public void send(@NotNull Project project, @NotNull String module, @NotNull String message, @NotNull NotificationType notificationType) {
-        NotificationGroup group = NotificationGroup.findRegisteredGroup("PHP Extras");
-
-        if (group == null) {
-            return;
-        }
-
-        Notification notification = group.createNotification("Module include path", module + ": " + message, notificationType);
-        ApplicationManager.getApplication().invokeLater(() -> {
-            Notifications.Bus.notify(notification, project);
-        });
+        NotificationGroupManager.getInstance()
+                .getNotificationGroup("PHP Extras")
+                .createNotification("Module include path changed", "[" + module + "] " + message, notificationType)
+                .notify(project);
     }
 
     static public void warn(@NotNull Project project, @NotNull String module, @NotNull String message) {
