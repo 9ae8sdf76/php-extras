@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RootModuleRootListener implements ModuleRootListener {
     final private VirtualFile composerJson;
@@ -87,7 +86,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                 contentRoots = Arrays.asList(getContentRoots(project));
             }
 
-            for (VirtualFile contentRoot : contentRoots.stream().distinct().collect(Collectors.toList())) {
+            for (VirtualFile contentRoot : contentRoots) {
                 VirtualFile compositeFile;
 
                 try {
