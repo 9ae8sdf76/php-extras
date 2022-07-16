@@ -107,15 +107,15 @@ public class RootModuleRootListener implements ModuleRootListener {
                     continue;
                 }
 
-                NotificationUtil.info(project, module, "[A] " + compositeFile.getPath());
-                includePaths.add(compositeFile.getPath());
+                String path = compositeFile.getPath();
+
+                if (!includePaths.contains(path)) {
+                    NotificationUtil.info(project, module, "[A] " + path);
+                    includePaths.add(path);
+                }
             }
 
-            includePathManager.setIncludePath(
-                    includePaths
-                            .stream()
-                            .distinct()
-                            .collect(Collectors.toList()));
+            includePathManager.setIncludePath(includePaths);
 
             project.getMessageBus().syncPublisher(ProjectTopics.PROJECT_ROOTS);
             this.contentRoots = null;
@@ -158,21 +158,22 @@ public class RootModuleRootListener implements ModuleRootListener {
                         continue;
                     }
 
-                    String canonicalCompositePath = compositeFile.getPath();
-                    for (String includePath : includePaths) {
-                        if (includePath.equals(canonicalCompositePath)) {
-                            NotificationUtil.info(project, module, "[R] " + includePath);
-                            toRemove.add(includePath);
+                    String path = compositeFile.getPath();
+
+                    if (includePaths.contains(path)) {
+                        for (String includePath : includePaths) {
+                            if (includePath.equals(path)) {
+                                NotificationUtil.info(project, module, "[R] " + includePath);
+                                toRemove.add(includePath);
+                            }
                         }
                     }
                 }
 
-                includePaths.removeAll(toRemove);
-                includePathManager.setIncludePath(
-                        includePaths
-                                .stream()
-                                .distinct()
-                                .collect(Collectors.toList()));
+                if (toRemove.size() > 0) {
+                    includePaths.removeAll(toRemove);
+                    includePathManager.setIncludePath(includePaths);
+                }
             } catch (IOException e) {
                 NotificationUtil.error(project, module != null ? module : "unknown", e.toString());
                 e.printStackTrace();
