@@ -79,10 +79,10 @@ public class PhpComposerAutoloadDevPackageToContentRootInspection extends PhpIns
             @Override
             public void visitObject(@NotNull JsonObject o) {
                 if (o.equals(topLevelObject)) {
-                    JsonObject autoloadDevSection = JsonUtil.getPropertyValueOfType(o, "autoload-dev", JsonObject.class);
+                    final JsonObject autoloadDevSection = JsonUtil.getPropertyValueOfType(o, "autoload-dev", JsonObject.class);
 
                     if (autoloadDevSection != null) {
-                        List<JsonProperty> autoloadDevProperties = autoloadDevSection.getPropertyList();
+                        final List<JsonProperty> autoloadDevProperties = autoloadDevSection.getPropertyList();
 
                         // The idea is that we need to take each path defined in the autoload-dev and determine (by path)
                         // which ones do not already exist as a content root. Those are the paths that we will report
