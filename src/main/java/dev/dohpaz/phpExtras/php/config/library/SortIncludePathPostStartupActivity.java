@@ -13,8 +13,8 @@ public class SortIncludePathPostStartupActivity implements StartupActivity, Dumb
         final PhpIncludePathManager includePathManager = PhpIncludePathManager.getInstance(project);
 
         project
-                .getMessageBus()
-                .connect()
-                .subscribe(ProjectTopics.PROJECT_ROOTS, new SortIncludePathListener(includePathManager));
+            .getMessageBus()
+            .connect()
+            .subscribe(ProjectTopics.PROJECT_ROOTS, new SortIncludePathListener(includePathManager));
     }
 }

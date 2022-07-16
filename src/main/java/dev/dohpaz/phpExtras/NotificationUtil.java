@@ -16,9 +16,9 @@ public class NotificationUtil {
 
     static public void send(@NotNull Project project, @NotNull String module, @NotNull String message, @NotNull NotificationType notificationType) {
         NotificationGroupManager.getInstance()
-                .getNotificationGroup("PHP Extras")
-                .createNotification("Module include path changed", "[" + module + "] " + message, notificationType)
-                .notify(project);
+            .getNotificationGroup("PHP Extras")
+            .createNotification("Module include path changed", "[" + module + "] " + message, notificationType)
+            .notify(project);
     }
 
     static public void warn(@NotNull Project project, @NotNull String module, @NotNull String message) {

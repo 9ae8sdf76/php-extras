@@ -20,8 +20,8 @@ public class RootPostStartupActivity implements StartupActivity, DumbAware {
 
         final RootModuleRootListener rootModuleRootListener = new RootModuleRootListener(includePathManager, this.localFileSystem, composerJson);
         project
-                .getMessageBus()
-                .connect()
-                .subscribe(ProjectTopics.PROJECT_ROOTS, rootModuleRootListener);
+            .getMessageBus()
+            .connect()
+            .subscribe(ProjectTopics.PROJECT_ROOTS, rootModuleRootListener);
     }
 }

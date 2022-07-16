@@ -16,7 +16,7 @@ public class PhpExtrasBundle extends DynamicBundle {
 
     public static @NotNull
     @Nls String message(@NotNull @PropertyKey(
-            resourceBundle = "messages.PhpExtras"
+        resourceBundle = "messages.PhpExtras"
     ) String key, @NotNull Object... params) {
         return INSTANCE.getMessage(key, params);
     }

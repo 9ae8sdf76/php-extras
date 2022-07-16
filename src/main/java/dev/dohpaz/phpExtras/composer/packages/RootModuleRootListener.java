@@ -53,7 +53,6 @@ public class RootModuleRootListener implements ModuleRootListener {
         }
 
         final Project project = event.getProject();
-
         final VirtualFile[] contentRoots = getContentRoots(project);
 
         // If the global contentRoots has more roots than the local contentRoots, then we are removing a content root.
@@ -74,9 +73,9 @@ public class RootModuleRootListener implements ModuleRootListener {
             List<String> includePaths = getIncludePaths();
             String vendorDirectory = getVendorDirectory(project);
 
-            String module = "unknown";
 
             Collection<VirtualFile> contentRoots;
+            String module = "unknown";
 
             // If someone were to go to Preferences > Directories and remove all content roots
             // from the project, then the global contentRoots will be null.
