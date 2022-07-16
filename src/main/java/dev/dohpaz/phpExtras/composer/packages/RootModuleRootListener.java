@@ -144,7 +144,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     try {
                         module = getPackageName(contentRoot);
 
-                        if (module == null) {
+                        if (module == null || module.equals("")) {
                             continue;
                         }
 
