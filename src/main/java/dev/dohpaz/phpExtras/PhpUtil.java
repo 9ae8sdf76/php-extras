@@ -1,5 +1,5 @@
 package dev.dohpaz.phpExtras;
 
-public class PhpUtil {
+public final class PhpUtil {
 
 }

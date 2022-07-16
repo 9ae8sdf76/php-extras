@@ -16,7 +16,7 @@ public class SortIncludePathListener implements ModuleRootListener {
     }
 
     public void rootsChanged(@NotNull ModuleRootEvent event) {
-        List<String> includePaths = this.includePathManager.getIncludePath();
+        final List<String> includePaths = this.includePathManager.getIncludePath();
 
         includePaths.sort((o1, o2) -> {
             if (Objects.equals(o1, o2))

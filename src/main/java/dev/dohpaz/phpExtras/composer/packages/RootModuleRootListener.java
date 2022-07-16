@@ -70,9 +70,8 @@ public class RootModuleRootListener implements ModuleRootListener {
      */
     private void addIncludePath(Project project) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            List<String> includePaths = getIncludePaths();
-            String vendorDirectory = getVendorDirectory(project);
-
+            final List<String> includePaths = getIncludePaths();
+            final String vendorDirectory = getVendorDirectory(project);
 
             Collection<VirtualFile> contentRoots;
             String module = "unknown";
@@ -105,7 +104,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                     continue;
                 }
 
-                String path = compositeFile.getPath();
+                final String path = compositeFile.getPath();
 
                 if (!includePaths.contains(path)) {
                     NotificationUtil.info(project, module, "[A] " + path);
@@ -127,14 +126,14 @@ public class RootModuleRootListener implements ModuleRootListener {
      */
     private void removeIncludePath(Project project) {
         ApplicationManager.getApplication().invokeLater(() -> {
-            List<String> includePaths = getIncludePaths();
             final VirtualFile[] contentRoots = getContentRoots(project);
+            final List<String> includePaths = getIncludePaths();
 
             String module = "unknown";
 
             try {
-                List<String> toRemove = new LinkedList<>();
-                String vendorDirectory = getVendorDirectory(project);
+                final List<String> toRemove = new LinkedList<>();
+                final String vendorDirectory = getVendorDirectory(project);
 
                 for (VirtualFile contentRoot : contentRoots) {
                     VirtualFile compositeFile;
@@ -156,7 +155,7 @@ public class RootModuleRootListener implements ModuleRootListener {
                         continue;
                     }
 
-                    String path = compositeFile.getPath();
+                    final String path = compositeFile.getPath();
 
                     if (includePaths.contains(path)) {
                         for (String includePath : includePaths) {
@@ -192,14 +191,14 @@ public class RootModuleRootListener implements ModuleRootListener {
     }
 
     private @Nullable String getPackageName(VirtualFile root) throws IOException {
-        String contentRootPath = root.getCanonicalPath();
-        VirtualFile contentComposerJson = localFileSystem.findFileByPath(contentRootPath + "/composer.json");
+        final String contentRootPath = root.getCanonicalPath();
+        final VirtualFile contentComposerJson = localFileSystem.findFileByPath(contentRootPath + "/composer.json");
 
         if (contentComposerJson == null) {
             return null;
         }
 
-        JsonObject jsonObject = ComposerConfigUtils.parseJson(contentComposerJson).getAsJsonObject();
+        final JsonObject jsonObject = ComposerConfigUtils.parseJson(contentComposerJson).getAsJsonObject();
 
         return jsonObject.has("name")
             ? jsonObject.get("name").getAsString()
@@ -208,8 +207,8 @@ public class RootModuleRootListener implements ModuleRootListener {
 
     private String getVendorDirectory(Project project) {
         final String basePath = project.getBasePath();
+        final Pair<String, String> composerDirectories = ComposerConfigUtils.getVendorAndBinDirs(composerJson);
 
-        Pair<String, String> composerDirectories = ComposerConfigUtils.getVendorAndBinDirs(composerJson);
         return basePath + "/" + (composerDirectories != null ? composerDirectories.getFirst() : "vendor");
     }
 }
