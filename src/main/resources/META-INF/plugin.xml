@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>dev.dohpaz.php-extras</id>
     <name>PHP Extras</name>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <vendor email="support@dohpaz.dev">Ken Stanley</vendor>
 
     <description><![CDATA[
