@@ -11,7 +11,7 @@ public class SortIncludePathPostStartupActivity implements StartupActivity, Dumb
     @Override
     public void runActivity(@NotNull Project project) {
         final PhpIncludePathManager includePathManager = PhpIncludePathManager.getInstance(project);
-;
+
         project
                 .getMessageBus()
                 .connect()
