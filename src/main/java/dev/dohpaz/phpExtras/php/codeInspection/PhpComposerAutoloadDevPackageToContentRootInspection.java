@@ -105,7 +105,19 @@ public class PhpComposerAutoloadDevPackageToContentRootInspection extends PhpIns
                             return toAbsolutePath(project, root);
                         }).contains(toAbsolutePath(project, JsonPsiUtil.stripQuotes(Objects.requireNonNull(property.getValue()).getText()))));
 
-                        paths.forEach(this::makeReport);
+                        // Filter out any paths that exist within the base path of the project
+                        ContainerUtil.filter(paths, (p) -> {
+                            final JsonValue value = p.getValue();
+
+                            if (value == null) {
+                                return false;
+                            }
+
+                            final Path root = toAbsolutePath(project, JsonPsiUtil.stripQuotes(value.getText()));
+                            final String basePath = project.getBasePath();
+
+                            return root != null && basePath != null && !root.startsWith(basePath);
+                        }).forEach(this::makeReport);
                     }
                 }
             }
